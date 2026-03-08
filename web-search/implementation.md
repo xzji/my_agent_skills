@@ -10,6 +10,56 @@ This guide provides implementation examples for various programming languages an
 
 Engine Priority: SearXNG → Tavily
 
+## Quick Start: TypeScript Implementation
+
+A complete, production-ready TypeScript implementation is included in `websearch.ts`. This is recommended for most use cases.
+
+### Using the TypeScript Implementation
+
+```typescript
+import { WebSearchClient, search } from './websearch';
+
+// Option 1: Using the client class
+const client = new WebSearchClient({
+  tavilyApiKey: process.env.TAVILY_API_KEY
+});
+
+const results = await client.search({
+  query: 'latest Node.js version',
+  maxResults: 5,
+  engine: 'auto'
+});
+
+console.log(client.formatResults(results, 'auto'));
+
+// Option 2: Using the quick search function
+const quickResults = await search('React documentation', {
+  tavilyApiKey: process.env.TAVILY_API_KEY,
+  maxResults: 5
+});
+```
+
+### Features
+
+- ✅ No external dependencies (uses standard fetch)
+- ✅ Automatic fallback between engines
+- ✅ Environment variable support
+- ✅ TypeScript types included
+- ✅ Node.js and browser compatible
+- ✅ Comprehensive error handling
+
+### Installation
+
+```bash
+# Copy the file to your project
+cp websearch.ts ./src/websearch.ts
+
+# For Node.js without native fetch, install node-fetch
+npm install node-fetch
+```
+
+For complete API documentation, see the README.md file.
+
 ---
 
 ## TypeScript/JavaScript

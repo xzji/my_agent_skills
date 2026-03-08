@@ -169,21 +169,43 @@ Search for history of artificial intelligence
 
 This skill can be integrated into AI agents in multiple ways:
 
-### Option 1: Function Call Implementation
+### Option 1: Ready-to-Use TypeScript Implementation
+
+A complete TypeScript implementation is provided in `websearch.ts`. Copy it to your project and use directly:
+
+```typescript
+import { WebSearchClient } from './websearch';
+
+const client = new WebSearchClient({
+  tavilyApiKey: process.env.TAVILY_API_KEY
+});
+
+const results = await client.search({
+  query: 'latest Node.js version',
+  maxResults: 5,
+  engine: 'auto'
+});
+
+console.log(client.formatResults(results, 'auto'));
+```
+
+See README.md for detailed TypeScript API documentation.
+
+### Option 2: Function Call Implementation
 
 Implement as a function/tool with these parameters:
 - `query`: string
 - `maxResults`: number (optional, default 5)
 - `engine`: string (optional, default "auto")
 
-### Option 2: Plugin/Extension
+### Option 3: Plugin/Extension
 
 Implement as a plugin that:
 - Makes HTTP requests to search engine APIs
 - Parses JSON responses
 - Formats results for user consumption
 
-### Option 3: Standalone Service
+### Option 4: Standalone Service
 
 Deploy as a microservice:
 - REST API endpoint
