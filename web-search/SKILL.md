@@ -1,197 +1,322 @@
 ---
 name: web-search
-description: Search the web for information using multiple search engines (SearXNG, Google, DuckDuckGo). Use when user asks to search the web, find current information, look up news, or research online topics.
+description: Universal web search capability using SearXNG and Tavily. Use when user asks to search the web, find current information, research online topics, or look up recent news.
 ---
 
 # Web Search
 
-Search the web for information using privacy-respecting search engines. Supports SearXNG (default, no config needed), Google Custom Search (100 free queries/day), and DuckDuckGo.
+Universal web search capability with support for multiple search engines. This skill provides online information retrieval functionality that can be integrated into any AI agent.
+
+## Core Functionality
+
+Search the web and retrieve relevant information including:
+- Current news and events
+- Technical documentation
+- Product information and reviews
+- Factual information
+- Research topics
+- Online resources
+
+## Search Engines Supported
+
+| Engine | Type | Configuration Required | Priority |
+|--------|--------|----------------------|----------|
+| **SearXNG** | Meta search engine | No | 1 (Default) |
+| **Tavily** | AI-powered search | API Key | 2 |
 
 ## Usage
 
-```bash
-# Default search (uses SearXNG)
-/web-search
-Search for latest Node.js version
+### Basic Search
 
-# Specify number of results
-/web-search
-Find information about Python 3.13, return 10 results
-
-# Specify search engine
-/web-search
-Use Google to search "Samsung 2026 plans"
+```
+Search for [query]
+Search for web for [topic]
+Find information about [subject]
+Look up [term] online
 ```
 
-## Search Engines
+### With Parameters
 
-| Engine | Description | Config Required |
-|--------|-------------|-----------------|
-| **SearXNG** (Default) | Privacy-respecting meta search, no limits | No |
-| Google Custom Search | High quality, 100 free queries/day | API Key + CX ID |
-| DuckDuckGo | Privacy-focused, free | Optional proxy |
+```
+Search for [query], return [N] results
+Use [engine] to search for [topic]
+```
 
 ## Parameters
 
-The search function accepts these parameters:
-
 | Parameter | Type | Default | Description |
 |-----------|--------|---------|-------------|
-| `query` | string | - | Search query or question (required) |
-| `maxResults` | number | 5 | Number of results (1-10) |
-| `engine` | string | auto | Search engine: auto/searxng/google/duckduckgo |
-
-## Configuration
-
-### SearXNG (Recommended - No Config Needed)
-
-Default instance: `https://sousuo.emoe.top/search`
-
-Works out of the box with:
-- ✅ No API key required
-- ✅ No rate limits
-- ✅ Privacy protection
-- ✅ Multiple search engines aggregated
-
-### Google Custom Search (Optional)
-
-Set up for higher quality results:
-
-```bash
-# 1. Get API Key
-export GOOGLE_API_KEY=your_api_key_here
-
-# 2. Get CX ID (Create Custom Search Engine)
-export GOOGLE_CX_ID=your_cx_id_here
-
-# 3. Reload pi
-/reload
-```
-
-Instructions:
-1. Get API Key: https://console.cloud.google.com/apis/credentials
-2. Create Search Engine: https://programmablesearchengine.google.com/
-3. Free quota: 100 queries/day
-
-### DuckDuckGo (Optional)
-
-```bash
-# Use WebShare proxy (recommended)
-export WEBSHARE_API_KEY=your_webshare_key
-
-# Or use HTTP proxy
-export HTTP_PROXY=http://127.0.0.1:7890
-```
-
-### Custom SearXNG Instance
-
-```bash
-export SEARXNG_URL=https://your-custom-instance.com/search
-```
+| `query` | string | required | The search query or question |
+| `maxResults` | number | 5 | Number of results to return (1-10) |
+| `engine` | string | auto | Search engine: `auto`/`searxng`/`tavily` |
 
 ## Output Format
 
-Results are displayed as:
-
 ```
-Search results for "query" (engine):
+Search results for "[query]" ([engine]):
 
-1. Title
-   URL: https://example.com
-   Snippet of content...
+1. [Title]
+   URL: [URL]
+   [Content snippet...]
 
-2. Title
-   URL: https://example.com
-   Snippet of content...
+2. [Title]
+   URL: [URL]
+   [Content snippet]...
 ```
 
-## Engine Priority (auto mode)
+## Configuration
 
-When `engine=auto` (default):
+### SearXNG (Recommended - Works Out of Box)
 
-1. **SearXNG** - Always tried first
-2. **Google** - If API key configured
-3. **DuckDuckGo** - Fallback option
+**Default Instance**: `https://sousuo.emoe.top/search`
 
-## When to Use
+**Features**:
+- No API key required
+- No rate limits
+- Privacy-respecting
+- Aggregates multiple search engines
 
-Use this skill when user requests:
+**Custom Instance**:
+Set custom SearXNG instance URL:
+```
+SEARXNG_URL=https://your-instance.com/search
+```
 
-- Search the web for [topic]
-- Find information about [subject]
-- What's the latest [news/topic]?
-- Look up [term] online
-- Current events / recent news
-- Product research
-- Technical documentation lookup
-- Facts verification
+### Tavily (AI-Powered Search)
+
+**Overview**: Advanced AI search engine with enhanced understanding and relevance.
+
+**Features**:
+- AI-powered results
+- Excellent relevance ranking
+- Supports natural language queries
+- Fast response times
+
+**Setup**:
+
+1. Get API Key: https://tavily.com/
+2. Sign up for free tier (1000 searches/month)
+3. Set credentials:
+```
+TAVILY_API_KEY=your_api_key
+```
+
+**API Usage**:
+```http
+POST https://api.tavily.com/search
+Headers:
+  Authorization: Bearer {api_key}
+Body (JSON):
+{
+  "api_key": "{api_key}",
+  "query": "{query}",
+  "max_results": {maxResults},
+  "search_depth": "basic"
+}
+```
+
+**Free Tier**: 1,000 searches/month
+
+## Engine Selection
+
+When `engine=auto` (default), tries in order:
+
+1. **SearXNG** - Default, always attempted
+2. **Tavily** - If API key configured
+
+You can force a specific engine:
+```
+Use SearXNG to search for [topic]
+Use Tavily to search for [topic]
+```
 
 ## Examples
 
-```bash
-# Tech queries
-/web-search
+### Technology & Development
+
+```
 Search for latest Node.js version
-
-/web-search
-Find Python 3.13 documentation
-
-# News and current events
-/web-search
-What's happening in Iran war?
-
-/web-search
-Latest tech news today
-
-# Research
-/web-search
-Best practices for React hooks
-
-/web-search
-Compare Docker vs Podman
-
-# Product search
-/web-search
-Best laptop for coding 2026
+Find React 18 documentation
+Look up Python 3.13 new features
+Search for Docker vs Kubernetes comparison
 ```
 
-## Tips
+### News & Current Events
 
-- **Default is best for most use cases** - SearXNG works well without setup
-- **Google for precision** - Use when you need high-quality results and have API keys
-- **Use maxResults** - Request more results for comprehensive research
-- **Specify engine** - Force use of a particular search engine
-- **Current events** - Great for news and time-sensitive topics
+```
+What's happening in the Middle East?
+Search for latest tech news 2026
+Find information about recent earthquake
+```
+
+### Product Research
+
+```
+Search for best laptops for coding 2026
+Find reviews of Samsung Galaxy S26
+Look up prices for RTX 5090
+```
+
+### General Knowledge
+
+```
+What is quantum computing?
+Find information about renewable energy
+Search for history of artificial intelligence
+```
+
+## Integration Guide
+
+This skill can be integrated into AI agents in multiple ways:
+
+### Option 1: Function Call Implementation
+
+Implement as a function/tool with these parameters:
+- `query`: string
+- `maxResults`: number (optional, default 5)
+- `engine`: string (optional, default "auto")
+
+### Option 2: Plugin/Extension
+
+Implement as a plugin that:
+- Makes HTTP requests to search engine APIs
+- Parses JSON responses
+- Formats results for user consumption
+
+### Option 3: Standalone Service
+
+Deploy as a microservice:
+- REST API endpoint
+- Accepts search queries
+- Returns formatted results
+
+## API Endpoints
+
+### SearXNG API
+
+**Request**:
+```
+GET https://sousuo.emoe.top/search?q={query}&format=json&language=auto&categories=general
+```
+
+**Response** (JSON):
+```json
+{
+  "query": "search term",
+  "number_of_results": 100,
+  "results": [
+    {
+      "title": "Result Title",
+      "url": "https://example.com",
+      "content": "Content snippet..."
+    }
+  ]
+}
+```
+
+### Tavily API
+
+**Request**:
+```
+POST https://api.tavily.com/search
+Content-Type: application/json
+Authorization: Bearer {api_key}
+
+{
+  "api_key": "{api_key}",
+  "query": "{query}",
+  "max_results": {maxResults},
+  "search_depth": "basic"
+}
+```
+
+**Response** (JSON):
+```json
+{
+  "query": "search query",
+  "answer": "Direct answer if available",
+  "results": [
+    {
+      "title": "Page Title",
+      "url": "https://example.com",
+      "content": "Content snippet...",
+      "score": 0.95
+    }
+  ]
+}
+```
+
+## Best Practices
+
+### For Agent Implementers
+
+1. **Default to SearXNG** - No configuration required
+2. **Use Tavily for complex queries** - AI-enhanced understanding
+3. **Cache results** - Reduce redundant API calls
+4. **Handle errors gracefully** - Try fallback engines
+5. **Rate limiting** - Respect API quotas
+6. **Sanitize queries** - Remove sensitive information
+
+### For Users
+
+1. **Use specific queries** - More precise results
+2. **Verify information** - Cross-check critical facts
+3. **Follow links** - Access full content when needed
+4. **Use multiple searches** - For complex topics
 
 ## Troubleshooting
 
-| Issue | Solution |
-|--------|----------|
-| "fetch failed" | Check network connection, try different engine |
-| "No search results found" | Try different query, switch engine |
-| SearXNG blocked | Use Google or DuckDuckGo, or set HTTP_PROXY |
-| Google quota exceeded | Wait for daily reset or use SearXNG |
+| Issue | Cause | Solution |
+|--------|---------|-----------|
+| No results | Query too specific | Simplify search terms |
+| Connection failed | Network issue | Check internet connection |
+| API error | Invalid credentials | Verify Tavily API key |
+| Slow response | Rate limiting | Reduce request frequency |
+| Blocked access | Geographic restriction | Use different engine |
+
+## Tips
+
+- **Start with SearXNG** - Works without setup
+- **Use Tavily for complex queries** - Enhanced AI understanding
+- **Adjust maxResults** - Get more comprehensive results (up to 10)
+- **Try different engines** - If one doesn't return good results
+- **Use specific terms** - Get better search results
+
+## Security & Privacy
+
+### Data Handling
+
+- Queries are sent to search engines
+- No personal data is required
+- Results are processed client-side
+- No search history is stored
+
+### Privacy Notes
+
+- **SearXNG**: Privacy-respecting, no tracking
+- **Tavily**: Privacy-focused, no data collection
+
+## Requirements
+
+- **Network connectivity** - Internet access required
+- **HTTP client** - For making API requests
+- **JSON parser** - For parsing API responses
 
 ## Notes
 
-- Results include title, URL, and content snippet
-- Maximum 10 results per search
+- Default maxResults: 5
+- Maximum maxResults: 10
+- Results include: title, URL, content snippet
 - HTML tags are stripped from snippets
-- SearXNG respects .gitignore-like patterns in search results
+- Engines may have different result qualities
+- Tavily provides AI-enhanced relevance scoring
 
-## Quick Start
+## See Also
 
-```bash
-# Install skill (if not already in skills/)
-# Skill files are auto-loaded from:
-# ~/.agents/skills/
-# .agents/skills/ (current directory and parents)
+- SearXNG: https://searxng.org/
+- Tavily: https://tavily.com/
 
-# Use immediately
-/web-search
-Search for [your topic]
+## Version
 
-# No configuration needed for SearXNG!
-```
-
-See `websearch-GUIDE.md` for detailed setup instructions.
+Version: 1.2.0
+Status: Stable

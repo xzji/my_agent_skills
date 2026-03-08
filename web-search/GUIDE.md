@@ -1,204 +1,355 @@
-# Web Search 配置指南
+# Web Search Configuration Guide
 
-## 默认搜索引擎：SearXNG ✅
+Complete guide for configuring web search functionality in AI agents.
 
-**开箱即用，无需任何配置！**
+## Quick Start
 
-默认使用 SearXNG 搜索引擎（https://sousuo.emoe.top），这是一个开源的隐私尊重元搜索引擎，无需 API 密钥，直接可用。
+**Zero Configuration Required!**
 
-### SearXNG 特性
+The default search engine (SearXNG) works immediately without any setup.
 
-- ✅ **无需配置**：即开即用
-- ✅ **无限制**：没有查询配额限制
-- ✅ **隐私保护**：不追踪用户搜索记录
-- ✅ **聚合搜索**：整合多个搜索引擎结果
-- ✅ **结果丰富**：包含标题、URL、摘要
+---
 
-## 使用方法
+## Search Engines
 
-直接在 pi 中搜索即可：
+### 1. SearXNG (Default, Recommended)
+
+**Overview**: Privacy-respecting meta search engine that aggregates results from multiple sources.
+
+**Default Instance**: `https://sousuo.emoe.top/search`
+
+**Advantages**:
+- ✅ No API key required
+- ✅ No rate limits
+- ✅ Privacy protection (no tracking)
+- ✅ Aggregates multiple search engines
+- ✅ Works out of box
+
+**API Usage**:
+
+```http
+GET https://sousuo.emoe.top/search?q={query}&format=json&language=auto&categories=general
+```
+
+**Response Format**:
+```json
+{
+  "query": "search term",
+  "number_of_results": 100,
+  "results": [
+    {
+      "title": "Result Title",
+      "url": "https://example.com",
+      "content": "Content snippet...",
+      "engine": "source_engine"
+    }
+  ]
+}
+```
+
+**Custom Instance**:
+
+To use your own SearXNG instance:
 
 ```
-搜索最新的 Node.js 版本
-Search for "Samsung 2026 plans"
-查找 Python 3.13 新特性
+SEARXNG_URL=https://your-instance.com/search
 ```
 
-## 可选搜索引擎
+Deploy your own: https://searxng.org/
 
-如果你需要其他搜索引擎，可以配置以下选项：
+---
 
-### Google Custom Search（100 次免费/天）
+### 2. Tavily (AI-Powered Search)
 
-1. 访问 Google Cloud Console: https://console.cloud.google.com/
-2. 创建新项目或选择现有项目
-3. 进入 **APIs & Services** → **Library**
-4. 搜索 "Custom Search API" 并启用
-5. 进入 **APIs & Services** → **Credentials**
-6. 点击 **Create credentials** → **API key**
-7. 复制生成的 API Key
+**Overview**: Advanced AI search engine with enhanced understanding and relevance scoring.
 
-### 创建 Google 自定义搜索引擎
+**Advantages**:
+- ✅ AI-powered results with relevance scoring
+- ✅ Excellent for complex queries
+- ✅ Natural language understanding
+- ✅ Fast response times
+- ✅ Enhanced relevance ranking
 
-1. 访问 Programmable Search Engine: https://programmablesearchengine.google.com/
-2. 点击 **Add**
-3. 配置搜索引擎：
-   - **名称**: 输入名称（如 "My Search Engine"）
-   - **要搜索的站点**: 输入 `*` 或留空以搜索整个网络
-   - 点击 **创建**
-4. 在设置页面：
-   - 进入 **Setup** → **Basics**
-   - 找到 **Search engine ID (cx)**，复制这个值
+**Setup Instructions**:
 
-### 设置环境变量
+#### Step 1: Get API Key
 
-添加到你的 shell 配置文件（`~/.zshrc` 或 `~/.bashrc`）：
+1. Visit: https://tavily.com/
+2. Sign up for free account
+3. Navigate to API section
+4. Copy your API key
+
+**Free Tier**: 1,000 searches per month
+**Pricing**: https://tavily.com/pricing
+
+#### Step 2: Configure Environment Variable
 
 ```bash
-# Google Custom Search（可选）
-export GOOGLE_API_KEY=your_api_key_here
-export GOOGLE_CX_ID=your_cx_id_here
-
-# 自定义 SearXNG 实例（可选）
-export SEARXNG_URL=https://your-custom-searxng-instance.com/search
+export TAVILY_API_KEY=your_api_key_here
 ```
 
-然后重新加载配置：
+Or in code/agent configuration:
+```json
+{
+  "search": {
+    "tavily_api_key": "your_api_key_here"
+  }
+}
+```
 
+**API Usage**:
+
+```http
+POST https://api.tavily.com/search
+Content-Type: application/json
+Authorization: Bearer {api_key}
+
+{
+  "api_key": "{api_key}",
+  "query": "{query}",
+  "max_results": {maxResults},
+  "search_depth": "basic",
+  "include_answer": true,
+  "include_raw_content": false
+}
+```
+
+**Response Format**:
+```json
+{
+  "query": "search query",
+  "answer": "Direct answer if available",
+  "results": [
+    {
+      "title": "Page Title",
+      "url": "https://example.com",
+      "content": "Content snippet...",
+      "score": 0.95
+    }
+  ]
+}
+```
+
+**Quota Management**:
+- Free: 1,000 searches per month
+- Check usage: https://tavily.com/dashboard
+- Paid plans available for higher limits
+
+---
+
+## Engine Selection Logic
+
+When `engine=auto` (default):
+
+1. Try **SearXNG** first (always available)
+2. Try **Tavily** if API key configured
+
+You can force a specific engine:
+```
+Use SearXNG to search for [query]
+Use Tavily to search for [query]
+```
+
+## Parameter Reference
+
+### Common Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|--------|---------|-------------|
+| `query` | string | required | The search query |
+| `maxResults` | number | 5 | Number of results (1-10) |
+| `engine` | string | auto | Search engine selection (auto/searxng/tavily) |
+| `language` | string | auto | Search language (SearXNG only) |
+
+### SearXNG-Specific Parameters
+
+| Parameter | Values | Description |
+|-----------|---------|-------------|
+| `categories` | general, images, videos, news, etc. | Content type to search |
+| `time_range` | day, week, month, year | Time filter for results |
+| `safesearch` | 0, 1, 2 | Safe search level (0=off, 1=moderate, 2=strict) |
+
+### Tavily-Specific Parameters
+
+| Parameter | Values | Description |
+|-----------|---------|-------------|
+| `search_depth` | basic/advanced | Search depth (default: basic) |
+| `include_answer` | true/false | Include AI-generated answer |
+| `include_raw_content` | true/false | Include full page content |
+| `days` | number | Limit results to recent days |
+| `include_domains` | array | Specific domains to search |
+| `exclude_domains` | array | Domains to exclude |
+
+---
+
+## Error Handling
+
+### Common Issues and Solutions
+
+| Issue | Possible Cause | Solution |
+|--------|---------------|-----------|
+| **fetch failed** | Network connectivity issue | Check internet connection |
+| **401 Unauthorized** | Invalid API key | Verify Tavily credentials |
+| **429 Too Many Requests** | Rate limit exceeded | Wait or use different engine |
+| **Empty results** | Query too specific | Simplify search terms |
+| **Connection timeout** | Network slow/blocked | Use different engine |
+| **CAPTCHA required** | Anti-bot protection | Use different engine |
+
+### Best Practices
+
+1. **Graceful Fallback**: Try multiple engines
+2. **Rate Limiting**: Implement request throttling
+3. **Caching**: Cache common queries
+4. **Timeout Handling**: Set appropriate timeouts
+5. **Error Logging**: Log errors for debugging
+
+---
+
+## Security Considerations
+
+### API Key Protection
+
+- Never commit API keys to version control
+- Use environment variables or secure vaults
+- Rotate keys regularly
+- Monitor usage for anomalies
+
+### Privacy
+
+- **SearXNG**: Most privacy-friendly
+- **Tavily**: Privacy-focused, no search data collection
+
+### Data Sanitization
+
+- Strip sensitive information from queries
+- Sanitize user input before searching
+- Don't log full queries
+- Mask API keys in logs
+
+---
+
+## Advanced Configuration
+
+### Custom SearXNG Instance Deployment
+
+For complete control and privacy:
+
+1. Deploy SearXNG (https://searxng.org/)
+2. Configure preferred search engines
+3. Set custom rate limits
+4. Enable/disable specific engines
+5. Point to your instance:
+
+```
+SEARXNG_URL=https://your-instance.com/search
+```
+
+### Tavily Advanced Usage
+
+**Time-Limited Search**:
+```json
+{
+  "query": "latest news",
+  "days": 7,
+  "max_results": 10
+}
+```
+
+**Domain-Specific Search**:
+```json
+{
+  "query": "AI tools",
+  "include_domains": ["github.com", "producthunt.com"]
+}
+```
+
+**Exclude Domains**:
+```json
+{
+  "query": "best laptops",
+  "exclude_domains": ["spam-site.com"]
+}
+```
+
+---
+
+## Testing
+
+### Manual Testing
+
+**Test SearXNG**:
 ```bash
-source ~/.zshrc
-# 或
-source ~/.bashrc
+curl "https://sousuo.emoe.top/search?q=test&format=json" | jq '.results | length'
 ```
 
-## 搜索引擎选择
-
-### 自动模式（默认）
-
-当 `SEARCH_ENGINE=auto` 或未设置时，pi 会按以下顺序尝试：
-
-1. **SearXNG**（默认，无需配置）
-2. **Google Custom Search**（如果配置了 API Key 和 CX ID）
-3. **DuckDuckGo**（备选）
-
-### 指定搜索引擎
-
-可以在搜索时指定搜索引擎：
-
-```
-使用 SearXNG 搜索 "Python"
-使用 Google 搜索 "Node.js"
-```
-
-或在代码中设置环境变量：
-
+**Test Tavily**:
 ```bash
-export SEARCH_ENGINE=searxng    # 仅使用 SearXNG
-export SEARCH_ENGINE=google     # 仅使用 Google
-export SEARCH_ENGINE=duckduckgo # 仅使用 DuckDuckGo
+curl -X POST https://api.tavily.com/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"query":"test","max_results":5}' | jq '.results | length'
 ```
 
-## DuckDuckGo 配置（备选）
+---
 
-如果需要使用 DuckDuckGo：
+## Troubleshooting Checklist
 
-### 使用 WebShare 代理（推荐）
+- [ ] Network connectivity verified
+- [ ] API keys are valid (if using Tavily)
+- [ ] Environment variables are set correctly
+- [ ] Quota limits not exceeded
+- [ ] Agent configuration references correct endpoints
+- [ ] Error logs reviewed for specific issues
 
-```bash
-export WEBSHARE_API_KEY=your_webshare_key
-```
+---
 
-### 使用 HTTP 代理
+## Environment Variables Summary
 
-```bash
-export HTTP_PROXY=http://127.0.0.1:7890
-export HTTPS_PROXY=http://127.0.0.1:7890
-```
+| Variable | Purpose | Required |
+|-----------|---------|-----------|
+| `SEARXNG_URL` | Custom SearXNG instance URL | No |
+| `TAVILY_API_KEY` | Tavily API Key | For Tavily |
+| `HTTP_PROXY` | HTTP proxy URL | No |
+| `HTTPS_PROXY` | HTTPS proxy URL | No |
+| `ALL_PROXY` | Global proxy URL | No |
+| `NO_PROXY` | Proxy bypass list | No |
 
-## 自定义 SearXNG 实例
+---
 
-如果你想使用自己的 SearXNG 实例：
+## Resources
 
-```bash
-export SEARXNG_URL=https://your-searxng-instance.com/search
-```
+### Official Documentation
 
-部署 SearXNG：https://searxng.org/
+- SearXNG: https://searxng.org/
+- Tavily: https://tavily.com/docs
 
-## 配额说明
+### Community
 
-### SearXNG
-- **免费配额**: 无限制
-- **说明**: 由实例提供者维护
+- SearXNG Instances: https://searx.space/
+- Tavily Dashboard: https://tavily.com/dashboard
+- Search Engine Discussion: Various tech forums
 
-### Google Custom Search
-- **免费配额**: 每天 100 次查询
-- **查看使用量**: https://console.cloud.google.com/apis/api/customsearch.googleapis.com/quotas
-- **超额费用**: 每千次查询 $5 USD
+---
 
-### DuckDuckGo
-- **免费配额**: 无限制
-- **说明**: 公共 API，可能需要代理
+## FAQ
 
-## 搜索引擎对比
+**Q: Do I need to configure anything?**
+A: No, SearXNG works out of the box. Configuration is optional for Tavily.
 
-| 特性 | SearXNG | Google Custom Search | DuckDuckGo |
-|------|---------|-------------------|-----------|
-| 免费配额 | 无限制 | 100次/天 | 无限制 |
-| 需要配置 | 否 | 是 | 否 |
-| 搜索质量 | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
-| 隐私保护 | ⭐⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| 推荐度 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
+**Q: How much does it cost?**
+A: SearXNG is free. Tavily offers 1,000 free searches/month, with paid plans available.
 
-## 故障排除
+**Q: Which engine should I use?**
+A: Start with SearXNG. Use Tavily for complex queries or natural language understanding if you have API keys.
 
-### SearXNG 无法连接
+**Q: Can I use my own SearXNG instance?**
+A: Yes, set `SEARXNG_URL` to your instance.
 
-- 检查网络连接
-- 尝试使用自定义 SearXNG 实例
-- 切换到 Google 或 DuckDuckGo
+**Q: Is my search data private?**
+A: Both SearXNG and Tavily are privacy-focused and don't track users.
 
-### Google 搜索失败
+**Q: What if an engine fails?**
+A: With `engine=auto`, it automatically tries to the next available engine.
 
-- 检查 `GOOGLE_API_KEY` 和 `GOOGLE_CX_ID` 是否正确
-- 确认 Custom Search API 已启用
-- 检查配额是否用完
-
-### DuckDuckGo 无法连接
-
-- 尝试设置 `HTTP_PROXY` 环境变量
-- 使用 WebShare 代理服务
-- 切换到 SearXNG
-
-### 无搜索结果
-
-- 尝试不同的搜索引擎
-- 检查搜索查询是否正确
-- SearXNG 可能被某些网站屏蔽
-
-## 环境变量速查
-
-| 变量 | 描述 | 必需 |
-|------|------|------|
-| `SEARXNG_URL` | 自定义 SearXNG 实例 URL | 可选 |
-| `GOOGLE_API_KEY` | Google Cloud API Key | Google 搜索必需 |
-| `GOOGLE_CX_ID` | Custom Search Engine ID | Google 搜索必需 |
-| `WEBSHARE_API_KEY` | WebShare API Key | DuckDuckGo 可选 |
-| `HTTP_PROXY` | HTTP 代理地址 | 可选 |
-| `HTTPS_PROXY` | HTTPS 代理地址 | 可选 |
-| `SEARCH_ENGINE` | 搜索引擎 (auto/searxng/google/duckduckgo) | 可选，默认 auto |
-
-## 快速开始
-
-```bash
-# 安装扩展（已完成）
-cp /opt/homebrew/lib/node_modules/@mariozechner/pi-coding-agent/examples/extensions/websearch.ts ~/.pi/agent/extensions/
-
-# 在 pi 中重新加载
-/reload
-
-# 开始搜索！
-搜索最新的 Node.js 版本
-```
-
-不需要任何配置，直接使用即可！
+**Q: What makes Tavily special?**
+A: Tavily uses AI to enhance search understanding, providing better relevance for complex or natural language queries.
